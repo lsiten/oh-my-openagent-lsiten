@@ -113,6 +113,157 @@ Fix any failures before pushing. Each fix-commit cycle should be atomic.
 
 ---
 
+## Phase 1.5: Implementation Review (MANDATORY - TWO GATES)
+
+After implementation complete and local validation passes (typecheck + test + build), run TWO reviews in sequence:
+
+<implementation_review>
+
+### Gate 1: Plan Compliance Review
+
+Verify implementation matches plan requirements.
+
+**Step 1: Locate plan file**
+
+```bash
+# Find most recent plan
+PLAN_FILE=$(ls -t .omo/plans/*.md 2>/dev/null | head -1)
+
+# Or if plan path known from context
+PLAN_FILE=".omo/plans/{known_plan_name}.md"
+```
+
+If no plan found:
+```
+Warning: No plan file found. Skipping plan compliance review.
+Proceeding to quality review...
+```
+
+**Step 2: Invoke plan-compliance-review**
+
+```typescript
+task({
+  category: "unspecified-high",
+  load_skills: ["plan-compliance-review"],
+  run_in_background: false,
+  description: "Review implementation compliance with plan",
+  prompt: `Review implementation against plan document.
+
+Plan file: ${PLAN_FILE}
+Branch: ${BRANCH_NAME}
+Worktree: ${WORKTREE_PATH}
+
+Compare plan requirements with implementation (git diff) and verify:
+1. All plan TODOs implemented
+2. Technical approach follows plan
+3. No scope drift (extra features not in plan)
+4. Plan's edge cases handled
+
+Execute plan-compliance-review and report results.`
+})
+```
+
+**Step 3: Read compliance review results**
+
+```bash
+LATEST_COMPLIANCE=$(ls -t .agents/review-output/plan_compliance_review_*/summary.md 2>/dev/null | head -1)
+```
+
+```typescript
+const complianceResult = await Read(LATEST_COMPLIANCE)
+```
+
+**Step 4: Handle compliance outcome**
+
+**IF FAIL (blocking issues):**
+1. Read all blocking issues from summary.md
+2. Fix each issue → commit atomically
+3. Re-run plan-compliance-review (goto Step 2)
+
+**IF PASS:**
+```
+✅ Implementation complies with plan.
+
+Compliance report: .agents/review-output/plan_compliance_review_{timestamp}/summary.md
+
+Proceeding to quality review (Gate 2)...
+```
+
+Continue to Gate 2.
+
+---
+
+### Gate 2: Quality Review
+
+Audit code quality, performance, security, and test coverage.
+
+**Step 1: Invoke quality-review**
+
+```typescript
+task({
+  category: "unspecified-high",
+  load_skills: ["quality-review"],
+  run_in_background: false,
+  description: "Review code quality, performance, security, and test coverage",
+  prompt: `Review code quality on branch ${BRANCH_NAME}.
+
+Worktree: ${WORKTREE_PATH}
+
+Audit implementation for:
+1. Code quality (naming, comments, complexity, duplication)
+2. Performance & security (bottlenecks, vulnerabilities)
+3. Test coverage (boundary conditions, error paths)
+
+Execute quality-review and report results.`
+})
+```
+
+**Step 2: Read quality review results**
+
+```bash
+LATEST_QUALITY=$(ls -t .agents/review-output/quality_review_*/summary.md 2>/dev/null | head -1)
+```
+
+```typescript
+const qualityResult = await Read(LATEST_QUALITY)
+```
+
+**Step 3: Handle quality outcome**
+
+**IF FAIL (blocking issues):**
+1. Read all blocking issues from summary.md
+2. Fix each issue → commit atomically
+3. Re-run quality-review (goto Step 1)
+
+**IF WARN (warnings but no blocking):**
+1. Show warnings to user
+2. Ask: "Code has quality warnings. Continue to PR creation? (y/n)"
+3. If yes → proceed to Phase 2
+4. If no → fix warnings → re-review
+
+**IF PASS:**
+```
+✅ Code quality approved.
+
+Implementation reviews complete:
+- Plan compliance: .agents/review-output/plan_compliance_{timestamp}/summary.md
+- Code quality: .agents/review-output/quality_review_{timestamp}/summary.md
+
+Proceeding to PR creation...
+```
+
+Continue to Phase 2 (PR Creation).
+
+</implementation_review>
+
+**CRITICAL RULES:**
+- Both reviews must PASS before PR creation
+- Reviews run AFTER local validation (typecheck/test/build) but BEFORE pushing
+- This catches compliance + quality issues early - cheaper than CI/PR review loops
+- If either review fails 3+ times, escalate to user: "Review failures persist. Would you like to adjust approach or override?"
+
+---
+
 ## Phase 2: PR Creation
 
 <pr_creation>

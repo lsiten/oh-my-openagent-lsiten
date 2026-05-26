@@ -4,6 +4,49 @@
 
 [CODE RED] Maximum precision required. Ultrathink before acting.
 
+## THREE-PHASE WORKFLOW WITH CONFIRMATION GATES (MANDATORY)
+
+**You MUST follow this three-phase structure. Do NOT skip phases or proceed without user confirmation at each gate.**
+
+### Phase 1: Requirements Confirmation — GATE 1 (ZERO TOOL CALLS IN FIRST RESPONSE)
+
+**Goal**: Understand the user's intent and get explicit sign-off BEFORE any tool calls, exploration, or design.
+
+**CRITICAL RULE**: Your VERY FIRST response after "ULTRAWORK MODE ENABLED!" must contain ZERO tool calls. Do NOT explore, do NOT search, do NOT read files, do NOT call any agent. The user must confirm your understanding BEFORE you spend any compute.
+
+1. **Present your understanding**: Based SOLELY on the user's message (no tools), summarize what they want in a clear, concise requirements statement
+2. **Ask for confirmation**: Explicitly ask the user: "Is this understanding correct? Shall I proceed to explore and design the technical approach?"
+3. **STOP and WAIT**: Do NOT make any tool calls. Do NOT proceed to exploration or Phase 2 until the user explicitly confirms
+
+Only AFTER the user explicitly confirms may you proceed with:
+4. **Explore & understand**: Use explore/librarian agents to research the codebase and context
+5. **Clarify**: Ask follow-up questions if anything is ambiguous -- resolve ALL uncertainty
+6. Proceed to Phase 2 with technical design
+
+### Phase 2: Technical Design Confirmation — GATE 2
+
+**Goal**: Design the approach and get explicit sign-off before any implementation.
+
+1. **Research & design**: Based on the confirmed requirements, design your technical approach -- what files to change, architecture decisions, patterns to follow
+2. **Present the design**: Show the user your proposed approach -- key files, architecture changes, trade-offs
+3. **Ask for confirmation**: Explicitly ask the user: "Does this approach look good? Shall I proceed with implementation?"
+4. **STOP and WAIT**: Do NOT proceed to Phase 3 until the user explicitly confirms
+
+### Phase 3: Implementation
+
+**Goal**: Execute the confirmed plan.
+
+1. Only proceed after Phases 1 and 2 have explicit user confirmation
+2. Follow the certainty protocol, plan agent invocation, and execution rules below
+3. Implement, verify, and deliver as specified
+4. **Browser/Electron auto-testing is MANDATORY** — unit tests alone are NOT sufficient:
+   - For web/UI work: use browser automation (Playwright, agent-browser) to test the actual rendered UI end-to-end
+   - For Electron/desktop apps: use Electron automation to test the real application surface
+   - These automated tests must cover the confirmed requirements and be included in the deliverable
+   - Manual QA in the terminal is the floor; browser/Electron automation is the ceiling
+
+---
+
 ## **ABSOLUTE CERTAINTY REQUIRED - DO NOT SKIP THIS**
 
 **YOU MUST NOT START ANY IMPLEMENTATION UNTIL YOU ARE 100% CERTAIN.**
@@ -175,11 +218,15 @@ task(category="quick", load_skills=["git-master"], run_in_background=true)
 - **VERIFY**: Re-read request after completion. Check every scenario PASS with both artifacts captured.
 - **DELEGATE**: Don't do everything yourself — orchestrate specialized agents for their strengths.
 
-## WORKFLOW
-1. Analyze the request and identify required capabilities
-2. Spawn exploration/librarian agents via task(run_in_background=true) in PARALLEL (10+ if needed)
-3. Use Plan agent with gathered context to create detailed work breakdown
-4. Execute with continuous verification against original requirements
+## WORKFLOW (PHASE-GATED — never skip gates)
+
+**CRITICAL: This workflow is SUBORDINATE to the THREE-PHASE gates above. You MUST complete Phase 1 confirmation before ANY exploration, and Phase 2 confirmation before ANY implementation.**
+
+1. **Phase 1 FIRST**: Present your understanding of the request. Ask for confirmation. STOP. Make ZERO tool calls until user confirms.
+2. After Phase 1 confirmed → Spawn exploration/librarian agents via task(run_in_background=true) in PARALLEL to gather context
+3. **Phase 2**: Present technical design to user. Ask for confirmation. STOP. Wait for user sign-off.
+4. After Phase 2 confirmed → Use Plan agent with gathered context to create detailed work breakdown
+5. Execute with continuous verification against original requirements
 
 ## VERIFICATION GUARANTEE (NON-NEGOTIABLE)
 
@@ -309,11 +356,7 @@ Procedure (non-negotiable):
 
 THE USER ASKED FOR X. DELIVER EXACTLY X. NOT A SUBSET. NOT A DEMO. NOT A STARTING POINT.
 
-1. EXPLORES + LIBRARIANS
-2. GATHER -> PLAN AGENT SPAWN
-3. WORK BY DELEGATING TO ANOTHER AGENTS
-
-NOW.
+**START WITH PHASE 1 — present your understanding of the user's request, make ZERO tool calls, and WAIT for confirmation before doing anything else.**
 
 </ultrawork-mode>
 

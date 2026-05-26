@@ -977,19 +977,82 @@ Plan saved to: `.omo/plans/{name}.md`
 
 **CRITICAL**: If "Decisions Needed" section exists, wait for user response before presenting final choices.
 
+## Phase 2.5: Plan Review (MANDATORY)
+
+**After plan generation and self-review complete, BEFORE presenting final choices, invoke plan-review skill.**
+
+### Step 1: Invoke plan-review
+
+```typescript
+task({
+  category: "unspecified-high",
+  load_skills: ["plan-review"],
+  run_in_background: false,
+  description: "Review plan document for completeness, feasibility, and risks",
+  prompt: `Review the work plan at .omo/plans/{plan_filename}.md
+
+The plan covers: {brief_summary_of_plan_scope}
+
+Execute plan-review and report results.`
+})
+```
+
+### Step 2: Read review results
+
+```typescript
+const reviewResult = await Read(".agents/review-output/plan_review_{latest}/summary.md")
+```
+
+Find latest by sorting timestamps:
+```bash
+LATEST_REVIEW=$(ls -t .agents/review-output/plan_review_*/summary.md 2>/dev/null | head -1)
+```
+
+### Step 3: Handle review outcome
+
+**IF FAIL (has blocking issues):**
+
+1. Read all blocking issues from summary.md
+2. Fix plan (Edit `.omo/plans/{name}.md` addressing each issue)
+3. Re-invoke plan-review (goto Step 1)
+4. Loop until PASS
+
+**IF PASS:**
+
+Tell user:
+```
+✅ Plan approved by review panel.
+
+Review report: .agents/review-output/plan_review_{timestamp}/summary.md
+
+Reviewers validated:
+- Completeness (objectives, scope, dependencies)
+- Technical feasibility (architecture, performance, edge cases)
+- Risk assessment (potential risks, rollback strategy, test coverage)
+```
+
+Continue to Final Choice Presentation.
+
+**CRITICAL:**
+- Plan review is BLOCKING - cannot present final choices until review passes
+- If review fails multiple times (3+), escalate to user: "Plan review found recurring issues: [summary]. Would you like to adjust requirements or proceed with current plan?"
+- Do NOT skip plan review - it catches issues before implementation begins
+
+---
+
 ### Final Choice Presentation (MANDATORY)
 
-**After plan is complete and all decisions resolved, present using Question tool:**
+**After plan review passes and all decisions resolved, present using Question tool:**
 
 ```typescript
 Question({
   questions: [{
-    question: "Plan is ready. How would you like to proceed?",
+    question: "Plan is ready and approved by review panel. How would you like to proceed?",
     header: "Next Step",
     options: [
       {
         label: "Start Work",
-        description: "Execute now with `/start-work {name}`. Plan looks solid."
+        description: "Execute now with `/start-work {name}`. Plan looks solid and passed review."
       },
       {
         label: "High Accuracy Review",
