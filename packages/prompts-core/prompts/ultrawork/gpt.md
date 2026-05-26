@@ -8,9 +8,9 @@
 
 You MUST follow this three-phase structure. Do NOT skip phases or proceed without user confirmation at each gate.
 
-**Phase 1 — Requirements Confirmation (GATE 1 — ZERO TOOL CALLS IN FIRST RESPONSE)**: Your VERY FIRST response must contain ZERO tool calls. Present your understanding of the user's request based SOLELY on their message. Ask "Is this correct?" STOP and WAIT. Only after the user confirms may you explore the codebase, then proceed to Phase 2.
+**Phase 1 — Requirements Confirmation (GATE 1 — ZERO TOOL CALLS IN FIRST RESPONSE)**: Your VERY FIRST response must contain ZERO tool calls. Present your understanding of the user's request based SOLELY on their message. Ask "Is this correct?" STOP and WAIT. Only after the user confirms may you explore the codebase, then proceed to Phase 2. **Notion/Figma Enhancement**: If the user's message contains a Notion link (`notion.so/*`, `notion.site/*`) or Figma link (`figma.com/*`), call `generate-prd@cs-web-agent-plugins` with the link to fetch PRD/design content FIRST, then present your understanding based on the fetched content, discuss and clarify with the user before confirmation.
 
-**Phase 2 — Technical Design Confirmation (GATE 2)**: Design your technical approach. Present it to the user. Ask "Does this approach look good?" STOP and WAIT for confirmation before proceeding.
+**Phase 2 — Technical Design Confirmation (GATE 2)**: Based on the confirmed requirements (and PRD/Figma content if available), design your technical approach. Write a comprehensive technical design document (markdown) covering architecture, file changes, API design, data flow, edge cases. Present it to the user. Ask "Does this technical design look good?" STOP and WAIT for confirmation. After user confirms, save the document to `.omo/prd-<descriptive-name>/tech.md` and generate an implementation plan to `.omo/plans/<descriptive-name>.md`.
 
 **Phase 3 — Implementation**: Only proceed after both gates have explicit user confirmation. Then follow the certainty protocol and execution rules below. **Browser/Electron auto-testing is MANDATORY** — unit tests alone are NOT sufficient: for web/UI work use browser automation (Playwright, agent-browser) for real E2E testing; for Electron apps use Electron automation. These auto-tests must cover the confirmed requirements and be included in the deliverable.
 

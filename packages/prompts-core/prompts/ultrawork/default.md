@@ -23,14 +23,28 @@ Only AFTER the user explicitly confirms may you proceed with:
 5. **Clarify**: Ask follow-up questions if anything is ambiguous -- resolve ALL uncertainty
 6. Proceed to Phase 2 with technical design
 
+#### Notion/Figma Link Detection (Phase 1 Enhancement)
+
+If the user's message contains a **Notion link** (`notion.so/*`, `notion.site/*`) or **Figma link** (`figma.com/*`):
+
+1. **IMMEDIATELY call** `generate-prd@cs-web-agent-plugins` with the link to fetch PRD/design content
+2. **Present the fetched content summary** to the user alongside your requirements understanding
+3. **Discuss and clarify** based on the fetched PRD/Figma content — ensure you fully understand the product requirements
+4. Continue Phase 1 confirmation flow as normal (ask for confirmation, STOP and WAIT)
+
+This step happens BEFORE presenting your understanding — the fetched content informs your requirements summary.
+
 ### Phase 2: Technical Design Confirmation — GATE 2
 
-**Goal**: Design the approach and get explicit sign-off before any implementation.
+**Goal**: Design the approach, output a technical design document, and get explicit sign-off before any implementation.
 
-1. **Research & design**: Based on the confirmed requirements, design your technical approach -- what files to change, architecture decisions, patterns to follow
-2. **Present the design**: Show the user your proposed approach -- key files, architecture changes, trade-offs
-3. **Ask for confirmation**: Explicitly ask the user: "Does this approach look good? Shall I proceed with implementation?"
-4. **STOP and WAIT**: Do NOT proceed to Phase 3 until the user explicitly confirms
+1. **Research & design**: Based on the confirmed requirements (and PRD/Figma content if available), design your technical approach — what files to change, architecture decisions, patterns to follow
+2. **Write technical design document**: Output a comprehensive technical document (markdown) covering: architecture, file changes, API design, data flow, edge cases, and implementation plan
+3. **Present the design**: Show the user your proposed approach — key files, architecture changes, trade-offs
+4. **Ask for confirmation**: Explicitly ask the user: "Does this technical design look good? Shall I proceed with implementation?"
+5. **STOP and WAIT**: Do NOT proceed to Phase 3 until the user explicitly confirms
+6. **Save to `.omo/prd-<name>/tech.md`**: After user confirms, save the technical design document to `.omo/prd-<descriptive-name>/tech.md` (e.g., `.omo/prd-user-auth/tech.md`)
+7. **Generate implementation plan**: Based on the PRD + technical design, generate a detailed implementation plan and save to `.omo/plans/<descriptive-name>.md`
 
 ### Phase 3: Implementation
 
